@@ -1,574 +1,66 @@
-- name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          name: Release ${{ steps.get_version.outputs.VERSION }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-      
-      # Using GitHub CLI to ensure assets are uploaded properly
-      - name: Upload Release Assets
-        run: |
-          gh release upload ${{ steps.get_version.outputs.VERSION }} \
-            saika-windows-amd64.exe \
-            saika-darwin-amd64 \
-            saika-darwin-arm64 \
-            saika-linux-amd64 \
-            saika-linux-arm64 \
-            saika-windows-amd64.zip \
-            saika-darwin-amd64.zip \
-            saika-darwin-arm64.zip \
-            saika-linux-amd64.zip \
-            saika-linux-arm64.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}name: Build and Release Binaries
+name: Build and Release
 
 on:
   push:
+    # Trigger the workflow when a new tag is pushed
     tags:
-      - 'v*'
-
-permissions:
-  contents: write  # This is crucial for uploading assets to releases
+      - 'saika*' # Matches v1.0.0, v20.15.10, etc.
 
 jobs:
-  build-and-release:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            asset_name: saika-linux-amd64
+          - os: windows-latest
+            asset_name: saika-windows-amd64.exe
+          - os: macos-latest
+            asset_name: saika-macos-amd64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.x' # Using Go 1.24 as specified in your go.mod
+
+      - name: Build binary
+        run: |
+          go build -o ${{ matrix.asset_name }} ./cmd/saika
+
+      - name: Upload binary as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Fetch all history for proper versioning
-      
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.20'  # A stable Go version
-      
-      - name: Get the version
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-        
-      - name: Install dependencies
-        run: |
-          go mod download
-          go mod tidy
-      
-      # Create a special internal/embedded folder to store embedded Go compiler
-      - name: Prepare embedded Go structure
-        run: |
-          mkdir -p internal/embedded
-          
-      # Download minimal Go distributions for all platforms
-      - name: Download Go distributions
-        run: |
-          # Create directories for Go distributions
-          mkdir -p temp/go-dist
-          
-          # Download Go for Windows
-          curl -L https://go.dev/dl/go1.20.12.windows-amd64.zip -o temp/go-dist/go-windows-amd64.zip
-          
-          # Download Go for macOS (Intel)
-          curl -L https://go.dev/dl/go1.20.12.darwin-amd64.tar.gz -o temp/go-dist/go-darwin-amd64.tar.gz
-          
-          # Download Go for macOS (Apple Silicon)
-          curl -L https://go.dev/dl/go1.20.12.darwin-arm64.tar.gz -o temp/go-dist/go-darwin-arm64.tar.gz
-          
-          # Download Go for Linux (amd64)
-          curl -L https://go.dev/dl/go1.20.12.linux-amd64.tar.gz -o temp/go-dist/go-linux-amd64.tar.gz
-          
-          # Download Go for Linux (arm64)
-          curl -L https://go.dev/dl/go1.20.12.linux-arm64.tar.gz -o temp/go-dist/go-linux-arm64.tar.gz
-      
-      # Create go-embedded.go file
-      - name: Create go-embedded.go
-        run: |
-          cat > internal/embedded/go-embedded.go << 'EOF'
-          package embedded
 
-          import "embed"
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
 
-          // GoCompilers contains the embedded Go compilers for different platforms
-          //go:embed go-compiler/*
-          var GoCompilers embed.FS
-          EOF
-          
-          # Create directory for embedded compilers
-          mkdir -p internal/embedded/go-compiler
-          
-          # Extract minimal Go distributions (just bin and essential parts)
-          mkdir -p temp/extract
-          
-          # Process Windows distribution
-          unzip -q temp/go-dist/go-windows-amd64.zip -d temp/extract
-          mkdir -p temp/extract/go-win
-          cp -r temp/extract/go/bin temp/extract/go-win/
-          cp -r temp/extract/go/pkg temp/extract/go-win/
-          zip -r internal/embedded/go-compiler/go-windows-amd64.zip temp/extract/go-win
-          
-          # Process macOS (Intel) distribution
-          tar -xzf temp/go-dist/go-darwin-amd64.tar.gz -C temp/extract
-          mkdir -p temp/extract/go-darwin
-          cp -r temp/extract/go/bin temp/extract/go-darwin/
-          cp -r temp/extract/go/pkg temp/extract/go-darwin/
-          tar -czf internal/embedded/go-compiler/go-darwin-amd64.tar.gz -C temp/extract go-darwin
-          
-          # Process macOS (Apple Silicon) distribution
-          tar -xzf temp/go-dist/go-darwin-arm64.tar.gz -C temp/extract
-          mkdir -p temp/extract/go-darwin-arm
-          cp -r temp/extract/go/bin temp/extract/go-darwin-arm/
-          cp -r temp/extract/go/pkg temp/extract/go-darwin-arm/
-          tar -czf internal/embedded/go-compiler/go-darwin-arm64.tar.gz -C temp/extract go-darwin-arm
-          
-          # Process Linux (amd64) distribution
-          tar -xzf temp/go-dist/go-linux-amd64.tar.gz -C temp/extract
-          mkdir -p temp/extract/go-linux
-          cp -r temp/extract/go/bin temp/extract/go-linux/
-          cp -r temp/extract/go/pkg temp/extract/go-linux/
-          tar -czf internal/embedded/go-compiler/go-linux-amd64.tar.gz -C temp/extract go-linux
-          
-          # Process Linux (arm64) distribution
-          tar -xzf temp/go-dist/go-linux-arm64.tar.gz -C temp/extract
-          mkdir -p temp/extract/go-linux-arm
-          cp -r temp/extract/go/bin temp/extract/go-linux-arm/
-          cp -r temp/extract/go/pkg temp/extract/go-linux-arm/
-          tar -czf internal/embedded/go-compiler/go-linux-arm64.tar.gz -C temp/extract go-linux-arm
-      
-      # Create embedded-go.go runtime utility file
-      - name: Create embedded-go-runtime.go
-        run: |
-          cat > internal/embedded/embedded-go-runtime.go << 'EOF'
-          package embedded
-
-          import (
-            "fmt"
-            "io"
-            "os"
-            "path/filepath"
-            "runtime"
-            "archive/zip"
-            "archive/tar"
-            "compress/gzip"
-            "strings"
-          )
-
-          // ExtractGoCompiler extracts the embedded Go compiler for the current platform to the specified directory
-          func ExtractGoCompiler(destDir string) (string, error) {
-            // Determine the current platform
-            goos := runtime.GOOS
-            goarch := runtime.GOARCH
-            
-            // Build the compiler file name
-            var compilerFile string
-            if goos == "windows" {
-              compilerFile = fmt.Sprintf("go-compiler/go-%s-%s.zip", goos, goarch)
-            } else {
-              compilerFile = fmt.Sprintf("go-compiler/go-%s-%s.tar.gz", goos, goarch)
-            }
-            
-            // Read the embedded compiler
-            data, err := GoCompilers.ReadFile(compilerFile)
-            if err != nil {
-              return "", fmt.Errorf("failed to read embedded Go compiler: %v", err)
-            }
-            
-            // Create temp file to store the archive
-            tempFile, err := os.CreateTemp("", "go-compiler-*")
-            if err != nil {
-              return "", fmt.Errorf("failed to create temp file: %v", err)
-            }
-            tempFilePath := tempFile.Name()
-            defer tempFile.Close()
-            defer os.Remove(tempFilePath)
-            
-            // Write the data to temp file
-            if _, err := tempFile.Write(data); err != nil {
-              return "", fmt.Errorf("failed to write temp file: %v", err)
-            }
-            tempFile.Close()
-            
-            // Create destination directory if it doesn't exist
-            if err := os.MkdirAll(destDir, 0755); err != nil {
-              return "", fmt.Errorf("failed to create destination directory: %v", err)
-            }
-            
-            // Extract the archive
-            if goos == "windows" {
-              if err := extractZip(tempFilePath, destDir); err != nil {
-                return "", fmt.Errorf("failed to extract ZIP archive: %v", err)
-              }
-            } else {
-              if err := extractTarGz(tempFilePath, destDir); err != nil {
-                return "", fmt.Errorf("failed to extract tar.gz archive: %v", err)
-              }
-            }
-            
-            // Determine the executable path
-            var goExe string
-            if goos == "windows" {
-              goExe = filepath.Join(destDir, "go-win", "bin", "go.exe")
-            } else if goos == "darwin" {
-              if goarch == "arm64" {
-                goExe = filepath.Join(destDir, "go-darwin-arm", "bin", "go")
-              } else {
-                goExe = filepath.Join(destDir, "go-darwin", "bin", "go")
-              }
-            } else {
-              if goarch == "arm64" {
-                goExe = filepath.Join(destDir, "go-linux-arm", "bin", "go")
-              } else {
-                goExe = filepath.Join(destDir, "go-linux", "bin", "go")
-              }
-            }
-            
-            // Make sure it's executable on Unix systems
-            if goos != "windows" {
-              if err := os.Chmod(goExe, 0755); err != nil {
-                return "", fmt.Errorf("failed to make Go executable: %v", err)
-              }
-            }
-            
-            return goExe, nil
-          }
-
-          // Helper function to extract a ZIP archive
-          func extractZip(zipFile, destDir string) error {
-            r, err := zip.OpenReader(zipFile)
-            if err != nil {
-              return err
-            }
-            defer r.Close()
-            
-            for _, f := range r.File {
-              fpath := filepath.Join(destDir, f.Name)
-              
-              // Create directory if needed
-              if f.FileInfo().IsDir() {
-                os.MkdirAll(fpath, f.Mode())
-                continue
-              }
-              
-              // Create parent directory if needed
-              if err := os.MkdirAll(filepath.Dir(fpath), 0755); err != nil {
-                return err
-              }
-              
-              // Create file
-              outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-              if err != nil {
-                return err
-              }
-              
-              // Open file from archive
-              rc, err := f.Open()
-              if err != nil {
-                outFile.Close()
-                return err
-              }
-              
-              // Copy contents
-              _, err = io.Copy(outFile, rc)
-              outFile.Close()
-              rc.Close()
-              if err != nil {
-                return err
-              }
-            }
-            
-            return nil
-          }
-
-          // Helper function to extract a tar.gz archive
-          func extractTarGz(tarGzFile, destDir string) error {
-            file, err := os.Open(tarGzFile)
-            if err != nil {
-              return err
-            }
-            defer file.Close()
-            
-            gzr, err := gzip.NewReader(file)
-            if err != nil {
-              return err
-            }
-            defer gzr.Close()
-            
-            tr := tar.NewReader(gzr)
-            
-            for {
-              header, err := tr.Next()
-              if err == io.EOF {
-                break
-              }
-              if err != nil {
-                return err
-              }
-              
-              // Get normalized path within destination
-              target := filepath.Join(destDir, header.Name)
-              
-              switch header.Typeflag {
-              case tar.TypeDir:
-                if err := os.MkdirAll(target, 0755); err != nil {
-                  return err
-                }
-              case tar.TypeReg:
-                // Create parent directory if needed
-                if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
-                  return err
-                }
-                
-                // Create file
-                f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
-                if err != nil {
-                  return err
-                }
-                
-                // Copy contents
-                if _, err := io.Copy(f, tr); err != nil {
-                  f.Close()
-                  return err
-                }
-                f.Close()
-              case tar.TypeSymlink:
-                // Handle symlinks
-                if err := os.Symlink(header.Linkname, target); err != nil {
-                  if !os.IsExist(err) {
-                    return err
-                  }
-                }
-              }
-            }
-            
-            return nil
-          }
-          EOF
-      
-      # Update main.go to use embedded Go compiler
-      - name: Create a patch for main.go
-        run: |
-          cat > cmd_saika_main.patch << 'EOF'
-          --- cmd/saika/main.go.orig
-          +++ cmd/saika/main.go
-          @@ -10,6 +10,9 @@
-           	"strings"
-           
-           	"github.com/saika-m/saika-lang-basic/internal/transpiler"
-          +	"github.com/saika-m/saika-lang-basic/internal/embedded"
-          +	"io/ioutil"
-          +	"time"
-           )
-           
-           func main() {
-          @@ -37,6 +40,30 @@
-           	}
-           }
-           
-          +// ensureGoCompiler checks if Go compiler is available, and if not, extracts the embedded one
-          +func ensureGoCompiler() (string, error) {
-          +	// First check if go is available in PATH
-          +	_, err := exec.LookPath("go")
-          +	if err == nil {
-          +		// Go is installed, use system go
-          +		return "go", nil
-          +	}
-          +	
-          +	// Go is not installed, extract embedded compiler
-          +	tempDir, err := ioutil.TempDir("", "saika-go-compiler")
-          +	if err != nil {
-          +		return "", fmt.Errorf("failed to create temp directory: %v", err)
-          +	}
-          +	
-          +	fmt.Println("Extracting embedded Go compiler (this may take a moment)...")
-          +	goPath, err := embedded.ExtractGoCompiler(tempDir)
-          +	if err != nil {
-          +		return "", fmt.Errorf("failed to extract Go compiler: %v", err)
-          +	}
-          +	
-          +	fmt.Printf("Using embedded Go compiler from %s\n", goPath)
-          +	return goPath, nil
-          +}
-          +
-           func printUsage() {
-           	fmt.Println("Usage:")
-           	fmt.Println("  saika build <file.saika>  - Compile the Saika file to an executable")
-          @@ -65,13 +92,21 @@
-           	}
-           
-           	// Transpile the Saika file to Go (silently)
-          +	fmt.Println("Transpiling Saika to Go...")
-           	goCode, err := t.TranspileFile(saikaFile)
-           	if err != nil {
-           		fmt.Printf("Error transpiling file: %v\n", err)
-           		os.Exit(1)
-           	}
-           
-          +	// Ensure go compiler is available
-          +	goCmd, err := ensureGoCompiler()
-          +	if err != nil {
-          +		fmt.Printf("Error setting up Go compiler: %v\n", err)
-          +		os.Exit(1)
-          +	}
-          +
-           	// Create a temporary Go file (silently)
-          +	fmt.Println("Creating temporary Go file...")
-           	tempGoFile, tempDir, err := createTempGoFile(goCode)
-           	if err != nil {
-           		fmt.Printf("Error creating temporary file: %v\n", err)
-          @@ -79,11 +114,12 @@
-           	}
-           	defer os.RemoveAll(tempDir) // Clean up temporary directory
-           
-          +	fmt.Println("Building executable...")
-           	// Compile the Go file
-           	outputFile := strings.TrimSuffix(saikaFile, ".saika")
-          -	cmd := exec.Command("go", "build", "-o", outputFile, tempGoFile)
-          +	cmd := exec.Command(goCmd, "build", "-o", outputFile, tempGoFile)
-           	cmd.Stdout = os.Stdout
-           	cmd.Stderr = os.Stderr
-          +	cmd.Env = append(os.Environ(), "GO111MODULE=auto")
-           
-           	if err := cmd.Run(); err != nil {
-           		fmt.Printf("Error compiling file: %v\n", err)
-          @@ -105,13 +141,20 @@
-           	}
-           
-           	// Transpile the Saika file to Go (silently)
-          +	fmt.Println("Transpiling Saika to Go...")
-           	goCode, err := t.TranspileFile(saikaFile)
-           	if err != nil {
-           		fmt.Printf("Error transpiling file: %v\n", err)
-           		os.Exit(1)
-           	}
-           
-          +	// Ensure go compiler is available
-          +	goCmd, err := ensureGoCompiler()
-          +	if err != nil {
-          +		fmt.Printf("Error setting up Go compiler: %v\n", err)
-          +		os.Exit(1)
-          +	}
-          +
-           	// Create a temporary Go file (silently)
-          +	fmt.Println("Creating temporary Go file...")
-           	tempGoFile, tempDir, err := createTempGoFile(goCode)
-           	if err != nil {
-           		fmt.Printf("Error creating temporary file: %v\n", err)
-          @@ -119,11 +162,12 @@
-           	}
-           	defer os.RemoveAll(tempDir) // Clean up temporary directory
-           
-          +	fmt.Println("Running program...")
-           	// Run the Go file
-          -	cmd := exec.Command("go", "run", tempGoFile)
-          +	cmd := exec.Command(goCmd, "run", tempGoFile)
-           	cmd.Stdout = os.Stdout
-           	cmd.Stderr = os.Stderr
-           	cmd.Stdin = os.Stdin
-          +	cmd.Env = append(os.Environ(), "GO111MODULE=auto")
-           
-           	if err := cmd.Run(); err != nil {
-           		fmt.Printf("Error running file: %v\n", err)
-          EOF
-          
-          patch -p0 < cmd_saika_main.patch
-      
-      # Update test.go to use embedded Go compiler
-      - name: Create a patch for test.go
-        run: |
-          cat > cmd_saika_test.patch << 'EOF'
-          --- cmd/saika/test.go.orig
-          +++ cmd/saika/test.go
-          @@ -5,6 +5,7 @@
-           	"io/ioutil"
-           	"os"
-           	"strings"
-          +	"path/filepath"
-           
-           	"github.com/saika-m/saika-lang-basic/internal/transpiler"
-           )
-          @@ -48,7 +49,28 @@
-           	fmt.Println("\nWould you like to save the transpiled Go code to a file? (y/n)")
-           	var response string
-           	fmt.Scanln(&response)
-          +	
-          +	saveGoCode(saikaFile, goCode, response)
-          +}
-          +
-          +// saveGoCode saves the transpiled Go code to a file if requested
-          +func saveGoCode(saikaFile, goCode, response string) {
-           	if response == "y" || response == "Y" {
-          -		goFilename := strings.TrimSuffix(saikaFile, ".saika") + ".go"
-          +		// Extract the base filename without the path
-          +		baseFile := filepath.Base(saikaFile)
-          +		goFilename := strings.TrimSuffix(baseFile, ".saika") + ".go"
-          +		
-          +		// If the original path had directories, use the same structure
-          +		origDir := filepath.Dir(saikaFile)
-          +		if origDir != "." {
-          +			// Create the directories if they don't exist
-          +			err := os.MkdirAll(origDir, 0755)
-          +			if err != nil {
-          +				fmt.Printf("Error creating directories: %v\n", err)
-          +				os.Exit(1)
-          +			}
-          +			goFilename = filepath.Join(origDir, goFilename)
-          +		}
-          +		
-           		err := ioutil.WriteFile(goFilename, []byte(goCode), 0644)
-           		if err != nil {
-           			fmt.Printf("Error writing Go file: %v\n", err)
-          EOF
-          
-          patch -p0 < cmd_saika_test.patch
-      
-      - name: Build for Windows
-        run: CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -v -o saika-windows-amd64.exe ./cmd/saika
-      
-      - name: Build for macOS (Intel)
-        run: CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -v -o saika-darwin-amd64 ./cmd/saika
-      
-      - name: Build for macOS (Apple Silicon)
-        run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -v -o saika-darwin-arm64 ./cmd/saika
-      
-      - name: Build for Linux (amd64)
-        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o saika-linux-amd64 ./cmd/saika
-      
-      - name: Build for Linux (arm64)
-        run: CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -v -o saika-linux-arm64 ./cmd/saika
-        
-      # Creating zip files for easier distribution
-      - name: Package binaries
-        run: |
-          zip -j saika-windows-amd64.zip saika-windows-amd64.exe
-          zip -j saika-darwin-amd64.zip saika-darwin-amd64
-          zip -j saika-darwin-arm64.zip saika-darwin-arm64
-          zip -j saika-linux-amd64.zip saika-linux-amd64
-          zip -j saika-linux-arm64.zip saika-linux-arm64
-      
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          name: Release ${{ steps.get_version.outputs.VERSION }}
+          name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
           generate_release_notes: true
-      
-      # Using GitHub CLI to ensure assets are uploaded properly
-      - name: Upload Release Assets
-        run: |
-          gh release upload ${{ steps.get_version.outputs.VERSION }} \
-            saika-windows-amd64.exe \
-            saika-darwin-amd64 \
-            saika-darwin-arm64 \
-            saika-linux-amd64 \
-            saika-linux-arm64 \
-            saika-windows-amd64.zip \
-            saika-darwin-amd64.zip \
-            saika-darwin-arm64.zip \
-            saika-linux-amd64.zip \
-            saika-linux-arm64.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            saika-linux-amd64/saika-linux-amd64
+            saika-windows-amd64.exe/saika-windows-amd64.exe
+            saika-macos-amd64/saika-macos-amd64

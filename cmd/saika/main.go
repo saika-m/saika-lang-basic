@@ -11,7 +11,7 @@ import (
 	"github.com/saika-m/saika-lang-basic/internal/transpiler"
 )
 
-const Version = "1.0.3"
+const Version = "1.0.4"
 
 func main() {
 	if len(os.Args) < 3 {
