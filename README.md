@@ -15,6 +15,9 @@ Saika is a programming language that allows you to write Go code using Chinese k
 
 ## 安装 (Installation)
 
+### VSCode Extension
+### <span style="color: yellow;">saika-m.saika-lang</span>
+
 ### 预构建二进制文件 (Pre-built Binaries)
 
 Download the appropriate binary for your platform from the [Releases](https://github.com/saika-m/saika-lang-basic/releases) page.
