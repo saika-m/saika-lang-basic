@@ -1,9 +1,20 @@
 {
-  "name": "language-saika",
-  "displayName": "Saika Language Support",
-  "description": "Syntax highlighting for Saika, a Chinese programming language based on Go",
-  "version": "0.1.0",
-  "publisher": "saika-lang",
+  "name": "saika-lang",
+  "displayName": "Saika Language Helpers",
+  "version": "1.0.4",
+  "description": "罪歌语言帮手",
+  "keywords": [
+    "saika"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "contributors": [
+    "saika-m"
+  ],
+  "author": "saika-m",
+  "license": "Apache License 2.0",
+  "publisher": "saika-m",
   "engines": {
     "vscode": "^1.60.0"
   },

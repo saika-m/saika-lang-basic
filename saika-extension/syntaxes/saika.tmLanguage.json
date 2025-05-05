@@ -3,6 +3,9 @@
     "name": "Saika",
     "patterns": [
         {
+            "include": "#comments"
+        },
+        {
             "include": "#keywords"
         },
         {
@@ -10,9 +13,6 @@
         },
         {
             "include": "#constants"
-        },
-        {
-            "include": "#comments"
         },
         {
             "include": "#functions"
@@ -35,11 +35,11 @@
                     "match": "\\b(包|导入|数|函数|返回|如果|否则|否则如果|循环|范围|开关|情况|默认|中断|继续|跳转|回调|选择|延迟|恢复|抛出|转到)\\b"
                 },
                 {
-                    "name": "keyword.declaration.saika",
+                    "name": "storage.type.saika",
                     "match": "\\b(变量|常量|类型)\\b"
                 },
                 {
-                    "name": "keyword.operator.saika",
+                    "name": "keyword.operator.logical.saika",
                     "match": "\\b(和|或|非)\\b"
                 }
             ]
@@ -83,8 +83,16 @@
         "functions": {
             "patterns": [
                 {
-                    "name": "entity.name.function.saika",
+                    "name": "support.function.saika",
                     "match": "\\b(打印|打印行|打印格式|扫描|扫描行|扫描格式|错误打印|错误打印行|错误打印格式|字符串格式|字符串扫描|字符串打印|字符串打印行|错误格式|新建|创建|删除|追加|复制|长度|容量)\\b"
+                },
+                {
+                    "name": "entity.name.function.saika",
+                    "match": "(?<=数|函数)\\s+([a-zA-Z_\\u4e00-\\u9fa5][a-zA-Z0-9_\\u4e00-\\u9fa5]*)(?=\\s*\\()"
+                },
+                {
+                    "name": "entity.name.function.saika",
+                    "match": "([a-zA-Z_\\u4e00-\\u9fa5][a-zA-Z0-9_\\u4e00-\\u9fa5]*)(?=\\s*\\()"
                 }
             ]
         },
@@ -99,8 +107,16 @@
         "variables": {
             "patterns": [
                 {
+                    "name": "variable.declaration.saika",
+                    "match": "(?<=变量|\\s)\\s*([a-zA-Z_\\u4e00-\\u9fa5][a-zA-Z0-9_\\u4e00-\\u9fa5]*)\\s*(?==)"
+                },
+                {
                     "name": "variable.parameter.saika",
                     "match": "\\b([a-zA-Z_\\u4e00-\\u9fa5][a-zA-Z0-9_\\u4e00-\\u9fa5]*)\\s*(?=:)"
+                },
+                {
+                    "name": "variable.other.saika",
+                    "match": "\\b([a-zA-Z_\\u4e00-\\u9fa5][a-zA-Z0-9_\\u4e00-\\u9fa5]*)\\b"
                 }
             ]
         },
