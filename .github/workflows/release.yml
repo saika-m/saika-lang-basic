@@ -46,23 +46,43 @@ jobs:
           # macOS builds
           GOOS=darwin GOARCH=amd64 go build -o build/macos-amd64/saika ./cmd/saika
           GOOS=darwin GOARCH=arm64 go build -o build/macos-arm64/saika ./cmd/saika
+      
+      - name: Add installation scripts
+        run: |
+          # Copy existing installation scripts to the build directories
+          
+          # Copy Linux/macOS script to appropriate directories
+          cp binary-help/install.sh build/linux-amd64/
+          cp binary-help/install.sh build/linux-arm64/
+          cp binary-help/install.sh build/linux-386/
+          cp binary-help/install.sh build/macos-amd64/
+          cp binary-help/install.sh build/macos-arm64/
+          
+          # Ensure the scripts are executable
+          chmod +x build/linux-*/install.sh
+          chmod +x build/macos-*/install.sh
+          
+          # Copy Windows script to Windows directories
+          cp binary-help/install.ps1 build/windows-amd64/
+          cp binary-help/install.ps1 build/windows-arm64/
+          cp binary-help/install.ps1 build/windows-386/
           
           # Create distribution archives for each platform
           cd build
           
           # Linux archives
-          tar -czf saika-linux-amd64.tar.gz linux-amd64/saika
-          tar -czf saika-linux-arm64.tar.gz linux-arm64/saika
-          tar -czf saika-linux-386.tar.gz linux-386/saika
+          tar -czf saika-linux-amd64.tar.gz linux-amd64/
+          tar -czf saika-linux-arm64.tar.gz linux-arm64/
+          tar -czf saika-linux-386.tar.gz linux-386/
           
           # Windows archives
-          zip -r saika-windows-amd64.zip windows-amd64/saika.exe
-          zip -r saika-windows-arm64.zip windows-arm64/saika.exe
-          zip -r saika-windows-386.zip windows-386/saika.exe
+          zip -r saika-windows-amd64.zip windows-amd64/
+          zip -r saika-windows-arm64.zip windows-arm64/
+          zip -r saika-windows-386.zip windows-386/
           
           # macOS archives
-          tar -czf saika-macos-amd64.tar.gz macos-amd64/saika
-          tar -czf saika-macos-arm64.tar.gz macos-arm64/saika
+          tar -czf saika-macos-amd64.tar.gz macos-amd64/
+          tar -czf saika-macos-arm64.tar.gz macos-arm64/
           
           # List the built files
           ls -la *.tar.gz *.zip
