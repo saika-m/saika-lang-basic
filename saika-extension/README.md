@@ -1,71 +1,147 @@
-# Saika Language Support for VS Code
+# Saika Programming Language (赛卡编程语言)
 
-This extension provides syntax highlighting and language support for the Saika programming language, a Chinese programming language built on top of Go.
+Saika is a programming language that lets you write Go code using Chinese keywords and syntax. It's designed to make programming more accessible to Chinese speakers while leveraging the power and performance of the Go ecosystem.
+
+![Saika Logo](https://via.placeholder.com/200x100?text=Saika)
 
 ## Features
 
-- Syntax highlighting for Saika (.saika) files
-- Recognition of Chinese keywords, types, and functions
-- Proper handling of comments, strings, and other language constructs
+- **Native Chinese syntax**: Write code using Chinese keywords, making it more intuitive for Chinese speakers
+- **Go compatibility**: Transpiles to standard Go code that leverages the entire Go ecosystem
+- **VS Code support**: Includes syntax highlighting and language tools
+- **Simple toolchain**: Build and run Saika files with easy-to-use commands
+- **Error messages in Chinese**: Get helpful error messages in Chinese when debugging
 
 ## Installation
 
-### From VS Code Marketplace (Coming Soon)
+### Prerequisites
+
+- Go 1.18 or later
+- Git
+
+### Installing Saika
+
+```bash
+# Clone the repository
+git clone https://github.com/saika-m/saika-lang-basic.git
+
+# Build the Saika compiler
+cd saika-lang-basic
+go build -o saika ./cmd/saika
+
+# Add to your PATH (optional)
+# On Linux/macOS:
+sudo mv saika /usr/local/bin/
+# On Windows: Add the directory containing saika.exe to your PATH
+```
+
+### Installing the VS Code Extension
+
 1. Open VS Code
-2. Go to the Extensions view (Ctrl+Shift+X)
-3. Search for "Saika Language Support"
-4. Click Install
+2. Go to Extensions (Ctrl+Shift+X)
+3. Click on "..." in the Extensions panel and select "Install from VSIX..."
+4. Navigate to the `saika-extension` folder and select the VSIX file (or install from the marketplace once published)
 
-### Manual Installation
-1. Download or clone this repository
-2. Copy the `language-saika` folder to your VS Code extensions folder:
-   - Windows: `%USERPROFILE%\.vscode\extensions`
-   - macOS/Linux: `~/.vscode/extensions`
-3. Restart VS Code
+## Quick Start
 
-## Example
+Create your first Saika program:
 
 ```saika
 包 入口
 
-导入 "格式化"
+导入 "工具"
 
-數 入口() {
-    格式化.打印行("你好，世界！")
+数 入口() {
+    工具.打印行("你好，世界！")
 }
 ```
 
-## Supported Keywords
+Save this as `hello.saika` and run it:
 
-This extension supports all Chinese keywords used in Saika, including:
+```bash
+saika run hello.saika
+```
+
+## Commands
+
+- `saika build <file.saika>`: Compile a Saika file to an executable
+- `saika run <file.saika>`: Run a Saika program
+- `saika test <file.saika>`: Show the transpiled Go code
+
+## Language Reference
 
 ### Basic Structure
-- `包` (package)
-- `导入` (import)
-- `數`, `函数` (func)
-- `返回` (return)
+
+| Saika (Chinese) | Go (English) |
+|-----------------|--------------|
+| 包              | package      |
+| 导入             | import       |
+| 数 / 函数         | func         |
+| 返回             | return       |
 
 ### Data Types
-- `整数` (int)
-- `浮点数` (float64)
-- `字符串` (string)
-- `布尔` (bool)
-- `真` (true)
-- `假` (false)
-- `空` (nil)
+
+| Saika (Chinese) | Go (English) |
+|-----------------|--------------|
+| 整数             | int          |
+| 浮点数            | float64      |
+| 字符串            | string       |
+| 布尔             | bool         |
+| 真              | true         |
+| 假              | false        |
+| 空 / 无          | nil          |
 
 ### Control Flow
-- `如果` (if)
-- `否则` (else)
-- `循环` (for)
-- `范围` (range)
 
-... and many more.
+| Saika (Chinese) | Go (English) |
+|-----------------|--------------|
+| 如果             | if           |
+| 否则             | else         |
+| 循环             | for          |
+| 范围             | range        |
 
-## Development
+For a complete language reference, see the [documentation](docs/language-reference.md).
 
-This extension is still in early development. If you encounter any issues or have suggestions for improvements, please submit an issue or pull request on GitHub.
+## Examples
+
+Check out the `examples/` directory for sample Saika programs:
+
+- [hello.saika](examples/hello.saika): Basic "Hello World" and simple functions
+- [simple.saika](examples/simple.saika): Minimal example
+- [advanced.saika](examples/advanced.saika): Demonstrates more complex features like structs, interfaces, and concurrency
+
+## Project Structure
+
+```
+saika-lang-basic/
+├── cmd/saika/               # Command-line interface
+├── examples/                # Example Saika programs
+├── internal/                # Internal packages
+│   └── transpiler/          # Transpiler implementation
+├── lib/                     # Library packages
+│   └── 工具/                 # Chinese wrappers for Go packages
+└── saika-extension/         # VS Code extension
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-MIT
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- The Go team for creating such an excellent language
+- Everyone who has contributed to making programming more accessible to non-English speakers
+
+## Contact
+
+Project Link: [https://github.com/saika-m/saika-lang-basic](https://github.com/saika-m/saika-lang-basic)
