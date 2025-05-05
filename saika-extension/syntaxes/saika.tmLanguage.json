@@ -1,0 +1,129 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Saika",
+    "patterns": [
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#constants"
+        },
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#functions"
+        },
+        {
+            "include": "#types"
+        },
+        {
+            "include": "#variables"
+        },
+        {
+            "include": "#operators"
+        }
+    ],
+    "repository": {
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.saika",
+                    "match": "\\b(包|导入|数|函数|返回|如果|否则|否则如果|循环|范围|开关|情况|默认|中断|继续|跳转|回调|选择|延迟|恢复|抛出|转到)\\b"
+                },
+                {
+                    "name": "keyword.declaration.saika",
+                    "match": "\\b(变量|常量|类型)\\b"
+                },
+                {
+                    "name": "keyword.operator.saika",
+                    "match": "\\b(和|或|非)\\b"
+                }
+            ]
+        },
+        "strings": {
+            "name": "string.quoted.double.saika",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.saika",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        "constants": {
+            "patterns": [
+                {
+                    "name": "constant.language.saika",
+                    "match": "\\b(真|假|空|无)\\b"
+                },
+                {
+                    "name": "constant.numeric.saika",
+                    "match": "\\b([0-9]+|0x[0-9a-fA-F]+)\\b"
+                }
+            ]
+        },
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-slash.saika",
+                    "match": "//.*$"
+                },
+                {
+                    "name": "comment.block.saika",
+                    "begin": "/\\*",
+                    "end": "\\*/"
+                }
+            ]
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "name": "entity.name.function.saika",
+                    "match": "\\b(打印|打印行|打印格式|扫描|扫描行|扫描格式|错误打印|错误打印行|错误打印格式|字符串格式|字符串扫描|字符串打印|字符串打印行|错误格式|新建|创建|删除|追加|复制|长度|容量)\\b"
+                }
+            ]
+        },
+        "types": {
+            "patterns": [
+                {
+                    "name": "support.type.saika",
+                    "match": "\\b(整数|整数8|整数16|整数32|整数64|无符号整数|无符号整数8|无符号整数16|无符号整数32|无符号整数64|字节|单精度浮点数|双精度浮点数|浮点数32|浮点数64|浮点数|复数64|复数128|复数|字符串|字符|布尔|任意|接口体|错误|结构体|接口|映射|切片|数组|通道|指针)\\b"
+                }
+            ]
+        },
+        "variables": {
+            "patterns": [
+                {
+                    "name": "variable.parameter.saika",
+                    "match": "\\b([a-zA-Z_\\u4e00-\\u9fa5][a-zA-Z0-9_\\u4e00-\\u9fa5]*)\\s*(?=:)"
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.assignment.saika",
+                    "match": "=|:=|\\+=|-=|\\*=|/=|%=|\\^=|&=|\\|=|<<=|>>="
+                },
+                {
+                    "name": "keyword.operator.arithmetic.saika",
+                    "match": "\\+|\\-|\\*|/|%|\\+\\+|\\-\\-"
+                },
+                {
+                    "name": "keyword.operator.logical.saika",
+                    "match": "&&|\\|\\||!"
+                },
+                {
+                    "name": "keyword.operator.comparison.saika",
+                    "match": "==|!=|<|>|<=|>="
+                }
+            ]
+        }
+    },
+    "scopeName": "source.saika"
+}
