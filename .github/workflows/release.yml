@@ -1,4 +1,4 @@
-name: Release
+name: Build and Release
 
 on:
   push:
@@ -20,28 +20,53 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.24.x'
-          
-      - name: Set up cross-compilation environment
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-x86-64 gcc-darwin-x86-64 || true
       
       - name: Build binaries
         run: |
-          # Create a directory for the binaries
-          mkdir -p build
+          # Create a directory structure for the binaries
+          mkdir -p build/linux-amd64
+          mkdir -p build/linux-arm64
+          mkdir -p build/linux-386
+          mkdir -p build/windows-amd64
+          mkdir -p build/windows-arm64
+          mkdir -p build/windows-386
+          mkdir -p build/macos-amd64
+          mkdir -p build/macos-arm64
           
-          # Linux build
-          GOOS=linux GOARCH=amd64 go build -o build/saika-linux-amd64 ./cmd/saika
+          # Linux builds
+          GOOS=linux GOARCH=amd64 go build -o build/linux-amd64/saika ./cmd/saika
+          GOOS=linux GOARCH=arm64 go build -o build/linux-arm64/saika ./cmd/saika
+          GOOS=linux GOARCH=386 go build -o build/linux-386/saika ./cmd/saika
           
-          # Windows build
-          GOOS=windows GOARCH=amd64 go build -o build/saika-windows-amd64.exe ./cmd/saika
+          # Windows builds
+          GOOS=windows GOARCH=amd64 go build -o build/windows-amd64/saika.exe ./cmd/saika
+          GOOS=windows GOARCH=arm64 go build -o build/windows-arm64/saika.exe ./cmd/saika
+          GOOS=windows GOARCH=386 go build -o build/windows-386/saika.exe ./cmd/saika
           
-          # macOS build
-          GOOS=darwin GOARCH=amd64 go build -o build/saika-macos-amd64 ./cmd/saika
+          # macOS builds
+          GOOS=darwin GOARCH=amd64 go build -o build/macos-amd64/saika ./cmd/saika
+          GOOS=darwin GOARCH=arm64 go build -o build/macos-arm64/saika ./cmd/saika
+          
+          # Create distribution archives for each platform
+          cd build
+          
+          # Linux archives
+          tar -czf saika-linux-amd64.tar.gz linux-amd64/saika
+          tar -czf saika-linux-arm64.tar.gz linux-arm64/saika
+          tar -czf saika-linux-386.tar.gz linux-386/saika
+          
+          # Windows archives
+          zip -r saika-windows-amd64.zip windows-amd64/saika.exe
+          zip -r saika-windows-arm64.zip windows-arm64/saika.exe
+          zip -r saika-windows-386.zip windows-386/saika.exe
+          
+          # macOS archives
+          tar -czf saika-macos-amd64.tar.gz macos-amd64/saika
+          tar -czf saika-macos-arm64.tar.gz macos-arm64/saika
           
           # List the built files
-          ls -la build/
+          ls -la *.tar.gz *.zip
+          cd ..
       
       - name: Create Release
         id: create_release
@@ -52,6 +77,11 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            build/saika-linux-amd64
-            build/saika-windows-amd64.exe
-            build/saika-macos-amd64
+            build/saika-linux-amd64.tar.gz
+            build/saika-linux-arm64.tar.gz
+            build/saika-linux-386.tar.gz
+            build/saika-windows-amd64.zip
+            build/saika-windows-arm64.zip
+            build/saika-windows-386.zip
+            build/saika-macos-amd64.tar.gz
+            build/saika-macos-arm64.tar.gz
