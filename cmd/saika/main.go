@@ -11,7 +11,7 @@ import (
 	"github.com/saika-m/saika-lang-basic/internal/transpiler"
 )
 
-const Version = "1.0.2"
+const Version = "1.0.3"
 
 func main() {
 	if len(os.Args) < 3 {
@@ -69,11 +69,17 @@ func buildCommand(t *transpiler.Transpiler, saikaFile string) {
 	}
 	defer os.RemoveAll(tempDir) // Clean up temporary directory
 
+	// Setup Go environment for Chinese imports
+	setupGoEnv()
+
 	// Compile the Go file
 	outputFile := strings.TrimSuffix(saikaFile, ".saika")
 	cmd := exec.Command("go", "build", "-o", outputFile, tempGoFile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	// Add the lib directory to GOPATH
+	cmd.Env = append(os.Environ(), "GOPATH="+os.Getenv("GOPATH")+":"+getLibDir())
 
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("Error compiling file: %v\n", err)
@@ -105,11 +111,17 @@ func runCommand(t *transpiler.Transpiler, saikaFile string) {
 	}
 	defer os.RemoveAll(tempDir) // Clean up temporary directory
 
+	// Setup Go environment for Chinese imports
+	setupGoEnv()
+
 	// Run the Go file
 	cmd := exec.Command("go", "run", tempGoFile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
+
+	// Add the lib directory to GOPATH
+	cmd.Env = append(os.Environ(), "GOPATH="+os.Getenv("GOPATH")+":"+getLibDir())
 
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("Error running file: %v\n", err)
@@ -134,4 +146,25 @@ func createTempGoFile(goCode string) (string, string, error) {
 	}
 
 	return tempFile, tempDir, nil
+}
+
+// Helper function to setup the Go environment for Chinese imports
+func setupGoEnv() {
+	// No implementation needed since we handle translation in the transpiler
+}
+
+// Helper function to get the lib directory
+func getLibDir() string {
+	// Get the directory of the current executable
+	execDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		// Fallback to the current directory
+		execDir, _ = os.Getwd()
+	}
+
+	// Go up one directory and find the lib directory
+	baseDir := filepath.Dir(execDir)
+	libDir := filepath.Join(baseDir, "lib")
+
+	return libDir
 }

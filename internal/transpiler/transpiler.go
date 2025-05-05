@@ -7,12 +7,14 @@ import (
 	"go/scanner"
 	"go/token"
 	"io/ioutil"
+	"regexp"
 	"strings"
 )
 
 // Transpiler takes Saika code with Chinese keywords and converts it to Go code
 type Transpiler struct {
 	keywordMap      map[string]string
+	packageMap      map[string]string
 	errorTranslator *ErrorTranslator
 }
 
@@ -20,6 +22,7 @@ type Transpiler struct {
 func New() *Transpiler {
 	return &Transpiler{
 		keywordMap:      ExtendedKeywordMap(),
+		packageMap:      PackageNameMap(),
 		errorTranslator: NewErrorTranslator(),
 	}
 }
@@ -55,6 +58,9 @@ func (t *Transpiler) Transpile(saikaCode string) (string, error) {
 		return "", err
 	}
 
+	// Process imports before any AST processing
+	goCode = t.processImports(goCode)
+
 	// Process the AST for additional transformations
 	goCode, err = t.ProcessAST(goCode)
 	if err != nil {
@@ -78,6 +84,37 @@ func (t *Transpiler) Transpile(saikaCode string) (string, error) {
 	}
 
 	return buf.String(), nil
+}
+
+// processImports finds and replaces Chinese package names in import statements
+func (t *Transpiler) processImports(code string) string {
+	// Regular expression to match import statements
+	// This handles both single imports and grouped imports
+	importRegex := regexp.MustCompile(`import\s+(?:\(\s*|\s*")([^"]+)"`)
+
+	// Process all imports
+	return importRegex.ReplaceAllStringFunc(code, func(match string) string {
+		// Check if this is a group import start or a single import
+		if strings.Contains(match, "(") {
+			// This is the beginning of a group import, don't modify it
+			return match
+		}
+
+		// Extract the package name
+		parts := importRegex.FindStringSubmatch(match)
+		if len(parts) < 2 {
+			return match
+		}
+
+		packageName := parts[1]
+
+		// Check if we have a mapping for this package
+		if goPackage, ok := t.packageMap[packageName]; ok {
+			return strings.Replace(match, "\""+packageName+"\"", "\""+goPackage+"\"", 1)
+		}
+
+		return match
+	})
 }
 
 // preprocess replaces Chinese keywords with their Go equivalents
