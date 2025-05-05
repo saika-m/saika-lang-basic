@@ -2,7 +2,7 @@
 
 Saika is a programming language that allows you to write Go code using Chinese keywords and syntax, making programming more accessible to Chinese speakers. The Saika transpiler converts your Chinese code into standard Go, enabling you to harness Go's performance and ecosystem while coding in Chinese.
 
-![Saika](https://via.placeholder.com/800x400?text=Saika+Programming+Language)
+![Saika](https://avatars.githubusercontent.com/u/165717332?v=4)
 
 ## 特性 (Features)
 
@@ -21,93 +21,193 @@ Download the appropriate binary for your platform from the [Releases](https://gi
 
 #### Binary Types
 
-| Binary Filename | System Type | Common Uses |
+| Archive Filename | System Type | Common Uses |
 |-----------------|-------------|-------------|
-| saika-linux-amd64 | Linux on Intel/AMD 64-bit (x86_64) | Standard Linux desktops, servers |
-| saika-linux-arm64 | Linux on ARM 64-bit | Raspberry Pi 4, ARM servers, embedded devices |
-| saika-linux-386 | Linux on 32-bit Intel/AMD (x86) | Older Linux systems |
-| saika-windows-amd64.exe | Windows on Intel/AMD 64-bit (x86_64) | Standard Windows PCs, laptops |
-| saika-windows-arm64.exe | Windows on ARM 64-bit | Surface Pro X, Windows ARM devices |
-| saika-windows-386.exe | Windows on 32-bit Intel/AMD (x86) | Older Windows systems |
-| saika-macos-amd64 | macOS on Intel processors | Intel Macs (pre-2020) |
-| saika-macos-arm64 | macOS on Apple Silicon | M1/M2/M3 Macs (2020 onward) |
+| saika-linux-amd64.tar.gz | Linux on Intel/AMD 64-bit (x86_64) | Standard Linux desktops, servers |
+| saika-linux-arm64.tar.gz | Linux on ARM 64-bit | Raspberry Pi 4, ARM servers, embedded devices |
+| saika-linux-386.tar.gz | Linux on 32-bit Intel/AMD (x86) | Older Linux systems |
+| saika-windows-amd64.zip | Windows on Intel/AMD 64-bit (x86_64) | Standard Windows PCs, laptops |
+| saika-windows-arm64.zip | Windows on ARM 64-bit | Surface Pro X, Windows ARM devices |
+| saika-windows-386.zip | Windows on 32-bit Intel/AMD (x86) | Older Windows systems |
+| saika-macos-amd64.tar.gz | macOS on Intel processors | Intel Macs (pre-2020) |
+| saika-macos-arm64.tar.gz | macOS on Apple Silicon | M1/M2/M3 Macs (2020 onward) |
 
 #### Installation Instructions
 
-We recommend organizing the binaries in separate folders by OS and architecture:
-
+**Linux (x86_64):**
 ```bash
-mkdir -p saika/{linux,windows,macos}/{amd64,arm64,386}
-```
+# Extract the archive
+tar -xzf saika-linux-amd64.tar.gz
 
-Then move each binary to its appropriate folder and rename it to simply `saika` (or `saika.exe` for Windows):
+# Change to extracted directory
+cd linux-amd64
 
-**Linux x86_64 (64-bit Intel/AMD):**
-```bash
-# Move to appropriate folder
-mv saika-linux-amd64 saika/linux/amd64/saika
 # Make executable
-chmod +x saika/linux/amd64/saika
-# Add to system path
-sudo cp saika/linux/amd64/saika /usr/local/bin/
+chmod +x saika
+
+# Copy to system path
+sudo cp saika /usr/local/bin/
+
+# Verify installation
+saika
+
+# Clean up
+cd ..
+rm -rf linux-amd64
+rm saika-linux-amd64.tar.gz
 ```
 
-**Linux ARM64 (Raspberry Pi 4, etc.):**
+**Linux (ARM64):**
 ```bash
-mv saika-linux-arm64 saika/linux/arm64/saika
-chmod +x saika/linux/arm64/saika
-sudo cp saika/linux/arm64/saika /usr/local/bin/
+# Extract the archive
+tar -xzf saika-linux-arm64.tar.gz
+
+# Change to extracted directory
+cd linux-arm64
+
+# Make executable
+chmod +x saika
+
+# Copy to system path
+sudo cp saika /usr/local/bin/
+
+# Verify installation
+saika
+
+# Clean up
+cd ..
+rm -rf linux-arm64
+rm saika-linux-arm64.tar.gz
 ```
 
-**Linux 386 (32-bit):**
+**Linux (386):**
 ```bash
-mv saika-linux-386 saika/linux/386/saika
-chmod +x saika/linux/386/saika
-sudo cp saika/linux/386/saika /usr/local/bin/
+# Extract the archive
+tar -xzf saika-linux-386.tar.gz
+
+# Change to extracted directory
+cd linux-386
+
+# Make executable
+chmod +x saika
+
+# Copy to system path
+sudo cp saika /usr/local/bin/
+
+# Verify installation
+saika
+
+# Clean up
+cd ..
+rm -rf linux-386
+rm saika-linux-386.tar.gz
 ```
 
-**macOS Intel:**
+**macOS (Intel):**
 ```bash
-mv saika-macos-amd64 saika/macos/amd64/saika
-chmod +x saika/macos/amd64/saika
-sudo cp saika/macos/amd64/saika /usr/local/bin/
+# Extract the archive
+tar -xzf saika-macos-amd64.tar.gz
+
+# Change to extracted directory
+cd macos-amd64
+
+# Make executable
+chmod +x saika
+
+# Copy to system path
+sudo cp saika /usr/local/bin/
+
+# Verify installation
+saika
+
+# Clean up
+cd ..
+rm -rf macos-amd64
+rm saika-macos-amd64.tar.gz
 ```
 
-**macOS Apple Silicon:**
+**macOS (Apple Silicon):**
 ```bash
-mv saika-macos-arm64 saika/macos/arm64/saika
-chmod +x saika/macos/arm64/saika
-sudo cp saika/macos/arm64/saika /usr/local/bin/
+# Extract the archive
+tar -xzf saika-macos-arm64.tar.gz
+
+# Change to extracted directory
+cd macos-arm64
+
+# Make executable
+chmod +x saika
+
+# Copy to system path
+sudo cp saika /usr/local/bin/
+
+# Verify installation
+saika
+
+# Clean up
+cd ..
+rm -rf macos-arm64
+rm saika-macos-arm64.tar.gz
 ```
 
-**Windows x86_64 (64-bit):**
+**Windows (x86_64):**
 ```powershell
-# Create directories if they don't exist
-mkdir -p saika\windows\amd64
-# Move and rename the binary
-move saika-windows-amd64.exe saika\windows\amd64\saika.exe
-# Add to system PATH (run in PowerShell as Administrator)
-$env:PATH += ";$pwd\saika\windows\amd64"
-[Environment]::SetEnvironmentVariable("PATH", $env:PATH, [EnvironmentVariableTarget]::User)
+# Extract the archive
+Expand-Archive saika-windows-amd64.zip
+
+# Change to extracted directory
+cd saika-windows-amd64
+
+# Copy to a directory in your PATH
+copy saika.exe C:\Windows\System32\
+
+# Verify installation
+saika
+
+# Clean up
+cd ..
+Remove-Item -Recurse -Force saika-windows-amd64
+Remove-Item saika-windows-amd64.zip
 ```
 
-**Windows ARM64:**
+**Windows (ARM64):**
 ```powershell
-mkdir -p saika\windows\arm64
-move saika-windows-arm64.exe saika\windows\arm64\saika.exe
-$env:PATH += ";$pwd\saika\windows\arm64"
-[Environment]::SetEnvironmentVariable("PATH", $env:PATH, [EnvironmentVariableTarget]::User)
+# Extract the archive
+Expand-Archive saika-windows-arm64.zip
+
+# Change to extracted directory
+cd saika-windows-arm64
+
+# Copy to a directory in your PATH
+copy saika.exe C:\Windows\System32\
+
+# Verify installation
+saika
+
+# Clean up
+cd ..
+Remove-Item -Recurse -Force saika-windows-arm64
+Remove-Item saika-windows-arm64.zip
 ```
 
-**Windows 386 (32-bit):**
+**Windows (386):**
 ```powershell
-mkdir -p saika\windows\386
-move saika-windows-386.exe saika\windows\386\saika.exe
-$env:PATH += ";$pwd\saika\windows\386"
-[Environment]::SetEnvironmentVariable("PATH", $env:PATH, [EnvironmentVariableTarget]::User)
-```
+# Extract the archive
+Expand-Archive saika-windows-386.zip
 
-Alternatively, you can copy the Windows binaries to `C:\Windows\System32\` for system-wide access (requires administrator privileges).
+# Change to extracted directory
+cd saika-windows-386
+
+# Copy to a directory in your PATH
+copy saika.exe C:\Windows\System32\
+
+# Verify installation
+saika
+
+# Clean up
+cd ..
+Remove-Item -Recurse -Force saika-windows-386
+Remove-Item saika-windows-386.zip
+```
 
 ### 从源码构建 (Build from Source)
 
